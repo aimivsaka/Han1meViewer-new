@@ -1,6 +1,7 @@
 package com.yenaly.han1meviewer.ui.fragment.video
 
 import android.app.Activity
+import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.graphics.Typeface
@@ -787,34 +788,62 @@ class VideoIntroductionFragment : YenalyFragment<FragmentVideoIntroductionBindin
 
             if (videoData.videoUrls.isEmpty()) {
                 showShortToast(R.string.no_video_links_found)
-            } else btnDownload.clickTrigger(viewLifecycleOwner.lifecycle) {
-                storagePermissionRequester?.requestStoragePermission(
-                    onGranted = {
-                        XPopup.Builder(context)
-                            .atView(it)
-                            .asAttachList(videoData.videoUrls.keys.toTypedArray(), null) { _, key ->
-                                if (key == HanimeResolution.RES_UNKNOWN) {
-                                    showShortToast(R.string.cannot_download_here)
-                                    browse(getHanimeVideoDownloadLink(viewModel.videoCode))
-                                } else {
-                                    checkedQuality = key
-                                    viewModel.findDownloadedHanime(viewModel.videoCode)
-                                }
-                            }.show()
-                    },
-                    onDenied = {
-                        Toast.makeText(
-                            requireContext(),
-                            "拒绝？拒绝就不好办了喵👿",
-                            Toast.LENGTH_LONG
-                        ).show()
-                        parentFragmentManager.popBackStack()
-                    },
-                    onPermanentlyDenied = {
-                        showGoToSettingsDialog()
-                    }
-                )
+            } else btnDownload.apply {
+                clickTrigger(viewLifecycleOwner.lifecycle) {
+                    storagePermissionRequester?.requestStoragePermission(
+                        onGranted = {
+                            XPopup.Builder(context)
+                                .atView(it)
+                                .asAttachList(videoData.videoUrls.keys.toTypedArray(), null) { _, key ->
+                                    if (key == HanimeResolution.RES_UNKNOWN) {
+                                        showShortToast(R.string.cannot_download_here)
+                                        browse(getHanimeVideoDownloadLink(viewModel.videoCode))
+                                    } else {
+                                        checkedQuality = key
+                                        viewModel.findDownloadedHanime(viewModel.videoCode)
+                                    }
+                                }.show()
+                        },
+                        onDenied = {
+                            Toast.makeText(
+                                requireContext(),
+                                "拒绝？拒绝就不好办了喵👿",
+                                Toast.LENGTH_LONG
+                            ).show()
+                            parentFragmentManager.popBackStack()
+                        },
+                        onPermanentlyDenied = {
+                            showGoToSettingsDialog()
+                        }
+                    )
+                }
 
+                setOnLongClickListener {
+                    XPopup.Builder(context)
+                        .atView(it)
+                        .asAttachList(videoData.videoUrls.keys.toTypedArray(), null) { _, key ->
+                            if (key == HanimeResolution.RES_UNKNOWN) {
+                                showShortToast(R.string.cannot_download_here)
+                                browse(getHanimeVideoDownloadLink(viewModel.videoCode))
+                            } else {
+                                checkedQuality = key
+                                val url = videoData.videoUrls[checkedQuality]?.link
+                                val suffix = videoData.videoUrls[checkedQuality]?.suffix
+                                val title = videoData.chineseTitle
+                                val intent = Intent(Intent.ACTION_VIEW).apply {
+                                    component = ComponentName(
+                                        "com.gianlu.aria2app",
+                                        "com.gianlu.aria2app.activities.AddUriActivity"
+                                    )
+
+                                    putExtra("uri", url)
+                                    putExtra("filename", "${title}.${suffix}")
+                                }
+                                context.startActivity(intent)
+                            }
+                        }.show()
+                    true
+                }
             }
         }
     }
