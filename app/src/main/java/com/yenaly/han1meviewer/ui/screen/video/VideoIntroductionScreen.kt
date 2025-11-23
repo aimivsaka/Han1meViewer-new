@@ -166,6 +166,7 @@ fun VideoIntroductionScreen(
     onManageMyList: (List<String>, List<Boolean>) -> Unit,
     onQuickCheckIn: (CheckInRecordEntity) -> Unit,
     onPrepareDownload: (String) -> Unit,
+    onDownloadWithAria2: (String) -> Unit,
     onDismissDownloadPrompt: () -> Unit,
     /**
      * @param autoGroupName 自动分组的目标分组名，null 表示不自动分组
@@ -216,6 +217,7 @@ fun VideoIntroductionScreen(
                 onManageMyList = onManageMyList,
                 onQuickCheckIn = onQuickCheckIn,
                 onPrepareDownload = onPrepareDownload,
+                onDownloadWithAria2 = onDownloadWithAria2,
                 onDismissDownloadPrompt = onDismissDownloadPrompt,
                 onConfirmDownloadPrompt = onConfirmDownloadPrompt,
                 onRequestOpenOfficialDownloadPage = onRequestOpenOfficialDownloadPage,
@@ -272,6 +274,7 @@ private fun VideoIntroductionContent(
     onManageMyList: (List<String>, List<Boolean>) -> Unit,
     onQuickCheckIn: (CheckInRecordEntity) -> Unit,
     onPrepareDownload: (String) -> Unit,
+    onDownloadWithAria2: (String) -> Unit,
     onDismissDownloadPrompt: () -> Unit,
     onConfirmDownloadPrompt: (autoGroupName: String?) -> Unit,
     onRequestOpenOfficialDownloadPage: () -> Unit,
@@ -297,11 +300,13 @@ private fun VideoIntroductionContent(
     var showQuickCheckInDialog by remember { mutableStateOf(false) }
     var showMyListDialog by remember { mutableStateOf(false) }
     var showDownloadQualityDialog by remember { mutableStateOf(false) }
+    var useExternalDownloader by remember { mutableStateOf(false) }
     var showPermissionSettingsDialog by remember { mutableStateOf(false) }
 
     if (showDownloadQualityDialog) {
         DownloadQualityDialog(
             videoUrls = video.videoUrls,
+            useExternalDownloader = useExternalDownloader,
             onDismiss = { showDownloadQualityDialog = false },
             onOpenOfficial = {
                 showDownloadQualityDialog = false
@@ -309,7 +314,11 @@ private fun VideoIntroductionContent(
             },
             onSelectQuality = { quality ->
                 showDownloadQualityDialog = false
-                onPrepareDownload(quality)
+                if (useExternalDownloader) {
+                    onDownloadWithAria2(quality)
+                } else {
+                    onPrepareDownload(quality)
+                }
             },
         )
     }
@@ -433,7 +442,14 @@ private fun VideoIntroductionContent(
                     onOpenOriginalComic = onOpenOriginalComic,
                     onToggleFavorite = onToggleFavorite,
                     onManageMyList = { showMyListDialog = true },
-                    onDownload = { showDownloadQualityDialog = true },
+                    onDownload = {
+                        useExternalDownloader = false
+                        showDownloadQualityDialog = true
+                    },
+                    onDownloadWithAria2 = {
+                        useExternalDownloader = true
+                        showDownloadQualityDialog = true
+                    },
                     onShare = onShare,
                     onCopyShareText = onCopyShareText,
                     onOpenWebPage = onOpenWebPage,
@@ -480,6 +496,7 @@ private fun VideoIntroductionContent(
 @Composable
 private fun DownloadQualityDialog(
     videoUrls: ResolutionLinkMap,
+    useExternalDownloader: Boolean,
     onDismiss: () -> Unit,
     onOpenOfficial: () -> Unit,
     onSelectQuality: (String) -> Unit,
@@ -487,7 +504,7 @@ private fun DownloadQualityDialog(
     val qualities = videoUrls.keys.toList()
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text(stringResource(R.string.download)) },
+        title = { Text(if (useExternalDownloader) "Aria2App" else stringResource(R.string.download)) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 qualities.forEach { quality ->
@@ -1489,6 +1506,7 @@ private fun ActionSection(
     onToggleFavorite: () -> Unit,
     onManageMyList: () -> Unit,
     onDownload: () -> Unit,
+    onDownloadWithAria2: () -> Unit,
     onShare: () -> Unit,
     onCopyShareText: () -> Unit,
     onOpenWebPage: () -> Unit,
@@ -1526,6 +1544,7 @@ private fun ActionSection(
             iconRes = R.drawable.ic_baseline_download_24,
             label = stringResource(R.string.download),
             onClick = onDownload,
+            onLongClick = onDownloadWithAria2,
         )
         VideoActionButton(
             iconRes = R.drawable.ic_baseline_share_24,
@@ -1746,6 +1765,7 @@ private fun VideoIntroductionScreenPreview() {
             onManageMyList = { _, _ -> },
             onQuickCheckIn = {},
             onPrepareDownload = {},
+            onDownloadWithAria2 = {},
             onDismissDownloadPrompt = {},
             onConfirmDownloadPrompt = {},
             onRequestOpenOfficialDownloadPage = {},
@@ -1787,6 +1807,7 @@ private fun VideoIntroductionScreenLoadingPreview() {
             onManageMyList = { _, _ -> },
             onQuickCheckIn = {},
             onPrepareDownload = {},
+            onDownloadWithAria2 = {},
             onDismissDownloadPrompt = {},
             onConfirmDownloadPrompt = {},
             onRequestOpenOfficialDownloadPage = {},
@@ -1828,6 +1849,7 @@ private fun VideoIntroductionScreenErrorPreview() {
             onManageMyList = { _, _ -> },
             onQuickCheckIn = {},
             onPrepareDownload = {},
+            onDownloadWithAria2 = {},
             onDismissDownloadPrompt = {},
             onConfirmDownloadPrompt = {},
             onRequestOpenOfficialDownloadPage = {},

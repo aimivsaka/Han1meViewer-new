@@ -46,6 +46,7 @@ fun RenderVideoIntroductionContent(
     onManageMyList: (HanimeVideo.MyList?, List<Boolean>) -> Unit,
     onQuickCheckIn: (CheckInRecordEntity) -> Unit,
     onPrepareDownload: (String, HanimeVideo?) -> Unit,
+    onDownloadWithAria2: (String, HanimeVideo?) -> Unit,
     onConfirmDownloadPrompt: (HanimeVideo?, String?) -> Unit,
     onRequestOpenOfficialDownloadPage: () -> Unit,
     onRequestOpenDownloadPermissionSettings: () -> Unit,
@@ -91,6 +92,9 @@ fun RenderVideoIntroductionContent(
             onQuickCheckIn = onQuickCheckIn,
             onPrepareDownload = { quality ->
                 onPrepareDownload(quality, video)
+            },
+            onDownloadWithAria2 = { quality ->
+                onDownloadWithAria2(quality, video)
             },
             onDismissDownloadPrompt = {
                 onPendingDownloadPromptChange(null)

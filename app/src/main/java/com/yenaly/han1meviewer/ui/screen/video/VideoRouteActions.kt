@@ -1,11 +1,14 @@
 package com.yenaly.han1meviewer.ui.screen.video
 
+import android.content.ActivityNotFoundException
+import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.provider.Settings
 import androidx.core.net.toUri
 import com.yenaly.han1meviewer.HAdvancedSearch
 import com.yenaly.han1meviewer.HCacheManager
+import com.yenaly.han1meviewer.HanimeResolution
 import com.yenaly.han1meviewer.Preferences
 import com.yenaly.han1meviewer.R
 import com.yenaly.han1meviewer.getHanimeVideoDownloadLink
@@ -174,6 +177,35 @@ class VideoRouteActions(
             },
             { openDownloadPermissionSettings() },
         )
+    }
+
+    fun downloadWithAria2(videoData: HanimeVideo, quality: String) {
+        if (quality == HanimeResolution.RES_UNKNOWN) {
+            openOfficialDownloadPage()
+            return
+        }
+        val videoLink = videoData.videoUrls[quality]
+        if (videoLink == null || videoLink.link.isBlank()) {
+            GlobalToasts.show(context.getString(R.string.no_video_links_found), level = GlobalToasts.ToastLevel.WARNING)
+            return
+        }
+        val title = (videoData.chineseTitle?.takeIf { it.isNotBlank() } ?: videoData.title)
+            .replace(Regex("""[\\/:*?"<>|\p{Cntrl}]"""), "_")
+        val intent = Intent(Intent.ACTION_VIEW).apply {
+            component = ComponentName(
+                "com.gianlu.aria2app",
+                "com.gianlu.aria2app.activities.AddUriActivity",
+            )
+            putExtra("uri", videoLink.link)
+            putExtra("filename", "$title.${videoLink.suffix}")
+        }
+        try {
+            context.startActivity(intent)
+        } catch (_: ActivityNotFoundException) {
+            GlobalToasts.show(context.getString(R.string.action_not_support), level = GlobalToasts.ToastLevel.WARNING)
+        } catch (_: SecurityException) {
+            GlobalToasts.show(context.getString(R.string.action_not_support), level = GlobalToasts.ToastLevel.WARNING)
+        }
     }
 
     fun confirmPendingDownload(
