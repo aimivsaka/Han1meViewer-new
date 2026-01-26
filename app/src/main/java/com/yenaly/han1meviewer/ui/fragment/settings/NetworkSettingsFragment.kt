@@ -94,7 +94,8 @@ class NetworkSettingsFragment : YenalySettingsFragment(R.xml.settings_network) {
             entries = arrayOf(
                 "${HANIME_HOSTNAME[0]} (${getString(R.string.default_)})",
                 "${HANIME_HOSTNAME[1]} (${getString(R.string.alternative)})",
-                "${HANIME_HOSTNAME[2]} (${getString(R.string.alternative)})"
+                "${HANIME_HOSTNAME[2]} (${getString(R.string.alternative)})",
+                "${HANIME_HOSTNAME[3]} (av)"
 
             )
             entryValues = HANIME_URL
@@ -225,7 +226,7 @@ class NetworkSettingsFragment : YenalySettingsFragment(R.xml.settings_network) {
             return try {
                 val start = System.currentTimeMillis()
                 val address = InetAddress.getByName(ip)
-                val reachable = address.isReachable(1000)
+                val reachable = address.isReachable(2000)
                 if (reachable) (System.currentTimeMillis() - start).toInt() else -1
             } catch (e: Exception) {
                 -1
@@ -261,6 +262,9 @@ class NetworkSettingsFragment : YenalySettingsFragment(R.xml.settings_network) {
                     val isValid = checkValid(ip, port)
                     if (isValid) {
                         val proxyType = proxyType
+                        if (proxyType == HProxySelector.TYPE_SOCKS){
+                            showSocksWarning()
+                        }
                         Preferences.preferenceSp.edit(commit = true) {
                             putInt(PROXY_TYPE, proxyType)
                             putString(PROXY_IP, ip)
@@ -350,5 +354,13 @@ class NetworkSettingsFragment : YenalySettingsFragment(R.xml.settings_network) {
             initView()
             dialog.showWithBlurEffect()
         }
+    }
+    private fun showSocksWarning() {
+        val context = requireContext()
+        context.createAlertDialog {
+            setTitle(context.getString(R.string.warning))
+            setMessage(context.getString(R.string.mpv_socks5_warning))
+            setPositiveButton(R.string.confirm) { _, _ -> }
+        }.show()
     }
 }

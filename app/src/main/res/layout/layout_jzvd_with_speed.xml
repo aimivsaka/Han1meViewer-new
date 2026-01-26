@@ -72,7 +72,7 @@
             android:paddingBottom="5dp"
             android:paddingStart="12dp"
             android:paddingEnd="12dp"
-            android:progressDrawable="@drawable/jz_bottom_seek_progress"
+            android:progressDrawable="@drawable/bottom_seek_progress"
             android:thumb="@drawable/jz_bottom_seek_poster"
             android:background="@null" />
 
@@ -103,7 +103,7 @@
         android:layout_height="1.5dp"
         android:layout_alignParentBottom="true"
         android:max="100"
-        android:progressDrawable="@drawable/jz_bottom_progress" />
+        android:progressDrawable="@drawable/bottom_seek_progress" />
 
     <ImageView
         android:id="@+id/back_tiny"
@@ -333,7 +333,7 @@
         android:background="@drawable/frosted_glass"
         android:paddingStart="16dp"
         android:paddingEnd="16dp"
-        android:text="从头开始"
+        android:text="@string/start_from_beginning"
         android:textColor="@android:color/white"
         android:textSize="14sp"
         android:textStyle="bold"

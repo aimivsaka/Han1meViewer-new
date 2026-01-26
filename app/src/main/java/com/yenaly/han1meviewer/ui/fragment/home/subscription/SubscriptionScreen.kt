@@ -57,6 +57,7 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -66,7 +67,10 @@ import com.yenaly.han1meviewer.logic.model.SubscriptionItem
 import com.yenaly.han1meviewer.logic.model.SubscriptionVideosItem
 import com.yenaly.han1meviewer.logic.state.WebsiteState
 import com.yenaly.han1meviewer.ui.fragment.ArtistItem
+import com.yenaly.han1meviewer.ui.fragment.EmptyView
 import com.yenaly.han1meviewer.ui.fragment.VideoCardItem
+import com.yenaly.han1meviewer.ui.fragment.fakeArtists
+import com.yenaly.han1meviewer.ui.fragment.fakeVideos
 import com.yenaly.han1meviewer.ui.viewmodel.MySubscriptionsViewModel
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
@@ -180,9 +184,9 @@ fun SubscriptionApp(
 
                 is WebsiteState.Error -> {
                     if (cachedArtists.value.isEmpty()) {
-                        Text(
-                            "加载失败: ${result.throwable.message}",
-                            modifier = Modifier.align(Alignment.Center)
+                        EmptyView(
+                            "${stringResource(R.string.load_failed_retry)}: ${result.throwable.message}",
+                            R.drawable.h_chan_sad
                         )
                     } else {
                         // 显示旧缓存内容（保持体验）
@@ -215,7 +219,7 @@ fun SubscriptionApp(
                     )
                 }
             }
-            Log.i("VideoCard", cachedVideos.value.toString())
+
             if (isRefreshing || scaleFraction() > 0f) {
                 Box(
                     Modifier
@@ -368,5 +372,56 @@ fun AnimatedPageContent(
             onLoadMore = onLoadMore,
             canLoadMore = canLoadMore
         )
+    }
+}
+
+@Preview(device = "spec:width=411dp,height=891dp")
+@Composable
+fun SubscriptionAppPreview() {
+    MaterialTheme { SubscriptionAppPreviewBody() }
+}
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun SubscriptionAppPreviewBody() {
+    val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior(rememberTopAppBarState())
+    val isRefreshing = false
+    val refreshState = rememberPullToRefreshState()
+
+    Scaffold(
+        modifier = Modifier
+            .nestedScroll(scrollBehavior.nestedScrollConnection)
+            .pullToRefresh(
+                state = refreshState,
+                isRefreshing = isRefreshing,
+                onRefresh = {}
+            ),
+        topBar = {
+            CenterAlignedTopAppBar(
+                title = { Text("我的订阅") },
+                navigationIcon = {
+                    IconButton(onClick = {}) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = "返回"
+                        )
+                    }
+                },
+                scrollBehavior = scrollBehavior,
+            )
+        }
+    ) { innerPadding ->
+        Box(Modifier.padding(innerPadding)) {
+            SubscriptionPageContent(
+                gridState = LazyGridState(),
+                videos = fakeVideos,
+                onClickVideosItem = {},
+                onLoadMore = { },
+                canLoadMore = false,
+                artists = fakeArtists,
+                onClickArtist = {},
+                onLongClickVideosItem = {_,_->},
+                onLongClickArtist = {_->}
+            )
+        }
     }
 }
